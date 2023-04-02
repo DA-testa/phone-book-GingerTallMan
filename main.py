@@ -1,5 +1,5 @@
 # python3
-
+# 221RDB254 Artūrs Adrians Zaharovs - Ploriņš 6. grupa
 class Query:
     def __init__(self, query):
         self.type = query[0]
@@ -9,39 +9,44 @@ class Query:
 
 def read_queries():
     n = int(input())
-    return [Query(input().split()) for i in range(n)]
+    if not 1 <= n <= 10**5:
+        raise ValueError("Invalid number of queries")
+    queries = []
+    for i in range(n):
+        query = input().strip().split()
+        if query[0] not in ['add', 'del', 'find']:
+            raise ValueError("Invalid query type")
+        if not 1 <= len(query[1]) <= 7 or not query[1].isdigit():
+            raise ValueError("Invalid phone number")
+        if query[0] == 'add' and not 1 <= len(query[2]) <= 15:
+            raise ValueError("Invalid name")
+        queries.append(Query(query))
+    return queries
 
 def write_responses(result):
     print('\n'.join(result))
 
 def process_queries(queries):
     result = []
-    # Keep list of all existing (i.e. not deleted yet) contacts.
-    contacts = []
+    # Use a dictionary to store the phone numbers and names
+    contacts = {}
     for cur_query in queries:
         if cur_query.type == 'add':
-            # if we already have contact with such number,
-            # we should rewrite contact's name
-            for contact in contacts:
-                if contact.number == cur_query.number:
-                    contact.name = cur_query.name
-                    break
-            else: # otherwise, just add it
-                contacts.append(cur_query)
+            # Add or update the contact
+            contacts[cur_query.number] = cur_query.name
         elif cur_query.type == 'del':
-            for j in range(len(contacts)):
-                if contacts[j].number == cur_query.number:
-                    contacts.pop(j)
-                    break
+            # Remove the contact if it exists
+            contacts.pop(cur_query.number, None)
         else:
-            response = 'not found'
-            for contact in contacts:
-                if contact.number == cur_query.number:
-                    response = contact.name
-                    break
+            # Find the name for the given number or return "not found"
+            response = contacts.get(cur_query.number, "not found")
             result.append(response)
     return result
 
 if __name__ == '__main__':
-    write_responses(process_queries(read_queries()))
-
+    try:
+        queries = read_queries()
+        result = process_queries(queries)
+        write_responses(result)
+    except Exception as e:
+        print("Error:", e)
